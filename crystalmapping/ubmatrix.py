@@ -81,8 +81,12 @@ def _get_vout_from_geo(x: float, y: float, geo: AzimuthalIntegrator) -> np.ndarr
     """Get the output beam vector. A vector form sample to the diffraction spot."""
     xyz = np.concatenate(
         geo.calc_pos_zyx(None, np.array([y]), np.array([x]))
-    ).squeeze()[::-1]
-    return xyz
+    ).squeeze()
+    xyz = list(xyz)
+    xyz.append(xyz.pop(0))
+    xyz[1] = -xyz[1]
+    xyz[0] = -xyz[0]
+    return np.array(xyz)
 
 
 def _get_u_from_geo(x: float, y: float, geo: AzimuthalIntegrator) -> np.ndarray:
@@ -303,14 +307,14 @@ class UBMatrix:
             raise UBMatrixError("R1 is None.")
         v_grain = self.lat_to_grain(v_lat)
         return np.matmul(self.R1, v_grain.T).T
-    
+
     def lat_to_grain_2(self, v_lat: np.ndarray) -> np.ndarray:
         """Transform a vector from reciprocal space (hkl) frame to crystal cartesian frame."""
         if self.R2 is None:
             raise UBMatrixError("R2 is None.")
         v_grain = self.lat_to_grain(v_lat)
         return np.matmul(self.R2, v_grain.T).T
-    
+
     def grain_to_lat(self, v_grain: np.ndarray) -> np.ndarray:
         """Transform a vector from the cartesian crystal frame to reciprocal space (hkl)."""
         if self.invB is None:
@@ -320,7 +324,7 @@ class UBMatrix:
     def grain_to_lat_1(self, v_grain: np.ndarray) -> np.ndarray:
         """Transform a vector from the cartesian crystal frame to reciprocal space (hkl)."""
         return np.matmul(self.R1.T, v_grain.T).T
-    
+
     def grain_to_lat_2(self, v_grain: np.ndarray) -> np.ndarray:
         """Transform a vector from the cartesian crystal frame to reciprocal space (hkl)."""
         return np.matmul(self.R2.T, v_grain.T).T
